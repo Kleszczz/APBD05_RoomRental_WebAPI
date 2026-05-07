@@ -1,0 +1,6 @@
+@APBD05_RoomRental_WebAPI_HostAddress = http://localhost:5189
+
+GET {{APBD05_RoomRental_WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
