@@ -4,7 +4,9 @@ namespace APBD05_RoomRental_WebAPI.Models;
 
 public class Room
 {
-    public int Id { get; set; }
+    private static int _nextId = 1;
+
+    public int Id { get; } = _nextId++;
 
     [Required(ErrorMessage = "Room name is required.")]
     public string Name { get; set; } = string.Empty;

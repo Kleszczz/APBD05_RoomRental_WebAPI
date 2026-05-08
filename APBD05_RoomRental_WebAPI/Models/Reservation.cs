@@ -4,7 +4,9 @@ namespace APBD05_RoomRental_WebAPI.Models;
 
 public class Reservation
 {
-    public int Id { get; set; }
+    private static int _nextId = 1;
+
+    public int Id { get; } = _nextId++;
 
     public int RoomId { get; set; }
 
