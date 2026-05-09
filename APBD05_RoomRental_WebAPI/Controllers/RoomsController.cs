@@ -95,10 +95,17 @@ public class RoomsController : ControllerBase
         {
             return NotFound();
         }
+
+        var hasFutureReservations = Data.Reservations
+            .Any(r => r.RoomId == id
+                      && r.Date >= DateOnly.FromDateTime(DateTime.Today)
+                      && r.Status != "cancelled");
+
+        if (hasFutureReservations)
+        {
+            Conflict();
+        }
         
-
-        //TODO: Tutaj trzeba dodac walidacje z wymagan projektu, cos z rezerwacjami i datami.
-
         Data.Rooms.Remove(room);
         return NoContent();
     }

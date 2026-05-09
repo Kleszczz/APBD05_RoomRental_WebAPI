@@ -3,25 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace APBD05_RoomRental_WebAPI.Controllers;
 
-/*
- Metoda Endpoint Opis
- okGET /api/reservations Zwraca wszystkie rezerwacje.
- GET /api/reservations/{id} Zwraca jedną rezerwację.
- okGET /api/reservations?date=2026-05-10&status=confirmed&roomId=2 Zwraca rezerwacje przefiltrowane po query stringu.
- POST /api/reservations Tworzy nową rezerwację.
- PUT /api/reservations/{id} Aktualizuje istniejącą rezerwację.
- okDELETE /api/reservations/{id} Usuwa rezerwację.
-
-Najważniejsze. W zadaniu muszą pojawić się różne sposoby przekazywania danych:
- id i buildingCode z trasy, filtry z query stringa oraz dane obiektów z body żądania w formacie JSON.
- */
 
 [Route("api/[controller]")] //do zmiany
 [ApiController]
 public class ReservationsController : ControllerBase
 {
-    //GET /api/reservations Zwraca wszystkie rezerwacje. 
-    //GET /api/reservations?date=2026-05-10&status=confirmed&roomId=2 Zwraca rezerwacje przefiltrowane po query stringu.
     [HttpGet]
     public IActionResult GetAllReservations(
         [FromQuery] DateOnly? date,
@@ -48,8 +34,7 @@ public class ReservationsController : ControllerBase
 
         return Ok(reservations);
     }
-
-    //GET /api/reservations/{id} Zwraca jedną rezerwację.
+    
     [HttpGet("{id:int}")]
     public IActionResult GetById(int id)
     {
@@ -62,8 +47,7 @@ public class ReservationsController : ControllerBase
 
         return Ok(reservation);
     }
-
-    //POST /api/reservations Tworzy nową rezerwację.
+    
     [HttpPost]
     public IActionResult Create([FromBody] Reservation reservation)
     {
@@ -78,8 +62,14 @@ public class ReservationsController : ControllerBase
         if (reservation.EndTime <= reservation.StartTime)
             return BadRequest();
         
-        //TODO: Sprawdzic rezerwacje tego pokoju w godzinach
-        var hasTimeConflict = Data.Reservations;
+        var hasTimeConflict = Data.Reservations
+            .Where(r => r.RoomId == reservation.RoomId && r.Date == reservation.Date && r.Status == "planned")
+            .Any(r => r.EndTime >= reservation.StartTime && r.StartTime <= reservation.EndTime);
+
+        if (hasTimeConflict)
+        {
+            return Conflict();
+        }
         
         Data.Reservations.Add(reservation);
 
@@ -109,10 +99,15 @@ public class ReservationsController : ControllerBase
         if (reservationUpdates.EndTime <= reservationUpdates.StartTime) {
             return BadRequest();
         }
-
-        //TODO: Zrobic weryfikacje tutaj.
-        var hasTimeConflict = Data.Reservations;
         
+        var hasTimeConflict = Data.Reservations
+            .Where(r => r.RoomId == reservationUpdates.RoomId && r.Date == reservationUpdates.Date && r.Status == "planned" && r.Id != id)
+            .Any(r => reservationUpdates.StartTime < r.EndTime && reservationUpdates.EndTime > r.StartTime);
+
+        if (hasTimeConflict)
+        {
+            return Conflict();
+        }
         
         reservation.RoomId = reservationUpdates.RoomId;
         reservation.OrganizerName = reservationUpdates.OrganizerName;
@@ -137,44 +132,4 @@ public class ReservationsController : ControllerBase
         Data.Reservations.Remove(reservation);
         return NoContent();
     }
-    
-    /*
-    // GET api/rooms
-    [HttpGet]
-    public IActionResult Get([FromQuery] int minCapacity = 0)
-    {
-        return Ok(rooms.Where(r => r.Capacity >= minCapacity));
-    }
-
-    // GET api/rooms/{id}
-    [Route("{id}")]
-    [HttpGet]
-    public IActionResult GetById([FromRoute] int id)
-    {
-        //var room = rooms.FirstOrDefault(r => r.Id == id);
-
-        if (false) //do zmiany
-        {
-            return NotFound();
-        }
-
-        return Ok(); //zwrocic cos w ok
-    }
-
-    // POST api/rooms { "name": "Room 4", "capacity": 7 }
-    [HttpPost]
-    public IActionResult Post([FromBody] CreateRoomDto createRoomDto)
-    {
-        var room = new Room()
-        {
-            Id = rooms.Count + 1,
-            Name = createRoomDto.Name,
-            Capacity = createRoomDto.Capacity
-        };
-
-        rooms.Add(room);
-
-        return CreatedAtAction(nameof(GetById), new { id = room.Id }, room);
-    }
-    */
 }
