@@ -4,6 +4,7 @@ namespace APBD05_RoomRental_WebAPI;
 
 public static class Data
 {
+    //Dane są wygenerwaone na podstawie modeli, modele sa autorskie zgodnie z poleceniem.
     public static List<Room> Rooms { get; } = new List<Room>
     {
         new Room {Name = "Aula A", BuildingCode = "A", Floor = 0, Capacity = 100, HasProjector = true, IsActive = true },
